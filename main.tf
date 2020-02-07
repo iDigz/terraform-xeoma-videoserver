@@ -49,6 +49,37 @@ module "security_group" {
   egress_with_cidr_blocks  = var.egress_with_cidr_blocks
 }
 
+resource "aws_iam_role" "this" {
+  name = "${var.instance_name}-role"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "this" {
+  name = "${var.instance_name}-profile"
+  role = aws_iam_role.this.name
+}
+
+resource "aws_iam_role_policy_attachment" "ssm_access_attachment" {
+  role       = aws_iam_role.this.id
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
+}
+
 module "ec2" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 2.0"
@@ -63,6 +94,7 @@ module "ec2" {
   subnet_id              = tolist(data.aws_subnet_ids.all.ids)[0]
   ebs_block_device       = var.ebs_block_device
   user_data              = file("user_data.sh")
+  iam_instance_profile   = aws_iam_instance_profile.this.name
 
   tags = {
     Terraform   = "true"
