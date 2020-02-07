@@ -6,7 +6,7 @@ wget https://felenasoft.com/xeoma/downloads/xeoma_linux64.tgz
 tar -xf xeoma_linux64.tgz
 mv xeoma.app /usr/local/bin/
 xeoma.app -install -hiddenmode
-xeoma.app -setpassword "48dzwlw5"
+xeoma.app -setpassword "XXXX5555"
 xeoma.app -startservice
 mkfs -t xfs /dev/xvdb
 mkdir /videodata
