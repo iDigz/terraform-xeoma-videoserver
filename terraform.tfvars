@@ -1,15 +1,6 @@
 instance_name  = "cctv-xeoma"
 instance_type  = "t2.micro"
 instance_count = 1
-ebs_block_device = [
-  {
-    device_name           = "/dev/sdb"
-    volume_type           = "gp2"
-    volume_size           = "20"
-    encrypted             = true
-    delete_on_termination = false
-  }
-]
 ingress_with_cidr_blocks = [
   {
     from_port   = 8090

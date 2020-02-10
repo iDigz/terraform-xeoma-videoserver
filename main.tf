@@ -84,20 +84,40 @@ module "ec2" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 2.0"
 
-  name                   = var.instance_name
-  instance_count         = var.instance_count
-  ami                    = data.aws_ami.ubuntu-18_04.id
-  instance_type          = var.instance_type
-  key_name               = aws_key_pair.this.key_name
-  monitoring             = true
-  vpc_security_group_ids = [module.security_group.this_security_group_id]
-  subnet_id              = tolist(data.aws_subnet_ids.all.ids)[0]
-  ebs_block_device       = var.ebs_block_device
-  user_data              = file("user_data.sh")
-  iam_instance_profile   = aws_iam_instance_profile.this.name
+  name                        = var.instance_name
+  instance_count              = var.instance_count
+  ami                         = data.aws_ami.ubuntu-18_04.id
+  instance_type               = var.instance_type
+  key_name                    = aws_key_pair.this.key_name
+  monitoring                  = true
+  vpc_security_group_ids      = [module.security_group.this_security_group_id]
+  subnet_id                   = tolist(data.aws_subnet_ids.all.ids)[0]
+  user_data                   = file("user_data.sh")
+  iam_instance_profile        = aws_iam_instance_profile.this.name
+  associate_public_ip_address = false
 
   tags = {
     Terraform   = "true"
     Environment = "dev"
   }
+}
+
+data "aws_ebs_volume" "this" {
+  most_recent = true
+
+  filter {
+    name   = "volume-type"
+    values = ["gp2"]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = ["cctv"]
+  }
+}
+
+resource "aws_volume_attachment" "ebs_att" {
+  device_name = "/dev/xvdb"
+  volume_id   = data.aws_ebs_volume.this.id
+  instance_id = module.ec2.id[0]
 }
